@@ -1,0 +1,15 @@
+{
+  "name": "court-night",
+  "version": "1.0.0",
+  "description": "Court Night: a free, no-account americano and mexicano organiser for padel nights. Runs entirely in the browser.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "node test/run.mjs",
+    "start": "node tools/serve.mjs",
+    "build:pages": "node tools/build-pages.mjs",
+    "screenshots": "node tools/screenshots.mjs",
+    "deploy:pages": "npm run build:pages && npm test && npx --yes wrangler@4.86.0 pages deploy dist --project-name court-night --branch main --commit-dirty=true"
+  }
+}

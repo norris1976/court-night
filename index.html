@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Court Night: padel americano and mexicano organiser</title>
+  <meta name="description" content="Run a social padel night: rotating partners, court assignments, real points scores and live standings. Free, no account, saved on your own device. Also works for tennis, badminton and pickleball.">
+  <meta name="theme-color" content="#0c0c0b">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230c0c0b'/%3E%3Ctext x='50' y='68' font-size='54' text-anchor='middle' fill='%23f4c430' font-family='sans-serif' font-weight='700'%3ECN%3C/text%3E%3C/svg%3E">
+  <link rel="preload" href="fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to the tool</a>
+  <header class="hero">
+    <p class="kicker">Sport Builds</p>
+    <h1>Court <span class="gold">Night</span></h1>
+    <p class="sub">Run a padel americano or mexicano night from your phone: who plays who, on which court, the scores and the standings. Free, no account.</p>
+  </header>
+
+  <main id="main">
+    <noscript><p class="card">Court Night needs JavaScript to run. It works entirely in your browser and sends nothing anywhere.</p></noscript>
+
+    <!-- Read-only standings opened from a shared link -->
+    <section id="view-snapshot" class="stack" hidden aria-labelledby="snap-h">
+      <div class="card">
+        <h2 id="snap-h">Standings</h2>
+        <p id="snap-sub" class="detail"></p>
+        <p class="note" id="snap-note">This is a snapshot taken when the link was made. It does not update. Ask the organiser for a fresh link after the next round.</p>
+        <div class="table-wrap"><table class="standings" id="snap-table"><caption class="sr-only">Standings snapshot</caption><thead></thead><tbody></tbody></table></div>
+        <p class="legend">Pts = points won. W = wins. P = matches played. +/- = points difference.</p>
+        <div class="actions">
+          <button type="button" id="snap-copy" class="primary">Copy as text</button>
+          <button type="button" id="snap-download">Download PNG card</button>
+        </div>
+        <p id="snap-status" class="detail" role="status"></p>
+        <canvas id="snap-card" width="1080" height="1400" aria-label="Standings card preview"></canvas>
+        <p class="center"><a id="snap-open" href="./">Run your own night with Court Night</a></p>
+      </div>
+    </section>
+
+    <!-- Setup -->
+    <section id="view-setup" class="stack" aria-label="Set up a night">
+      <form id="setup" class="card inputs" novalidate autocomplete="off">
+        <h2>Set up your night</h2>
+
+        <label for="title">Night name <small>(optional)</small></label>
+        <input id="title" name="title" maxlength="40" placeholder="Tuesday padel">
+
+        <fieldset>
+          <legend>Players <small id="count-hint">4 to 24</small></legend>
+          <label for="names-in" class="sr-only">Add players: one per line, or paste a list</label>
+          <textarea id="names-in" rows="3" placeholder="Type a name, or paste a list (one per line or separated by commas)" aria-describedby="names-help"></textarea>
+          <p id="names-help" class="hint">Press Add, or Enter. Pasting a whole list works too.</p>
+          <div class="row"><button type="button" id="add-names" class="secondary">Add players</button><button type="button" id="clear-names" class="link-btn">Remove all</button></div>
+          <ul id="player-list" class="chips" aria-label="Players added"></ul>
+        </fieldset>
+
+        <div class="grid">
+          <div>
+            <label for="courts">Courts</label>
+            <select id="courts" name="courts"></select>
+            <p id="courts-hint" class="hint"></p>
+          </div>
+          <div>
+            <label for="rounds">Rounds <small>(blank = suggested)</small></label>
+            <input id="rounds" name="rounds" inputmode="numeric" maxlength="2" placeholder="7" autocomplete="off">
+            <p id="rounds-hint" class="hint"></p>
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Points per match</legend>
+          <div class="seg" id="points-seg"></div>
+          <div id="custom-wrap" hidden>
+            <label for="points-custom">Custom points per match</label>
+            <input id="points-custom" inputmode="numeric" maxlength="2" placeholder="e.g. 28" autocomplete="off">
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Format</legend>
+          <div class="seg seg-wide" id="format-seg"></div>
+          <p id="format-hint" class="hint"></p>
+        </fieldset>
+
+        <div id="setup-msg" class="msg error" role="alert" hidden></div>
+        <button type="submit" class="primary big">Start the night</button>
+        <button type="button" id="example" class="secondary big">Try an example night</button>
+        <p class="hint center">The example uses ten invented names and made-up scores.</p>
+      </form>
+    </section>
+
+    <!-- A night in progress -->
+    <div id="view-night" class="stack" hidden>
+      <section class="card night-head" aria-labelledby="night-h">
+        <h2 id="night-h"></h2>
+        <p id="night-meta" class="detail"></p>
+        <nav id="round-tabs" class="tabs" aria-label="Rounds"></nav>
+      </section>
+
+      <div class="night-grid">
+        <section id="round-card" class="card inputs" aria-labelledby="round-h">
+          <h2 id="round-h"></h2>
+          <p id="sitting" class="sitting"></p>
+          <div id="matches"></div>
+          <div id="round-actions" class="round-actions"></div>
+        </section>
+
+        <section id="standings-card" class="card" aria-labelledby="standings-h">
+          <h2 id="standings-h">Standings</h2>
+          <p id="standings-sub" class="detail"></p>
+          <div class="table-wrap"><table class="standings" id="standings"><caption class="sr-only">Standings, updated as scores are entered</caption><thead></thead><tbody></tbody></table></div>
+          <p class="legend">Pts = points won. W = wins. P = matches played. +/- = points difference. Ranked by points, then wins, then difference, then head-to-head, then name.</p>
+        </section>
+      </div>
+
+      <section id="share-card" class="card" aria-labelledby="share-h">
+        <h2 id="share-h">Share standings</h2>
+        <p class="note">The link is a <strong>snapshot</strong> of the standings right now. It does not update, so share a fresh link after each round. It carries the names and scores in the link itself; nothing is stored on a server.</p>
+        <div class="actions three">
+          <button type="button" id="share-link" class="primary">Copy snapshot link</button>
+          <button type="button" id="share-text-btn">Copy as text</button>
+          <button type="button" id="share-download">Download PNG card</button>
+        </div>
+        <p id="share-status" class="detail" role="status"></p>
+        <label for="share-url" class="sr-only">Snapshot link</label>
+        <input id="share-url" class="mono" readonly hidden>
+        <label for="share-text" class="sr-only">Standings as text</label>
+        <textarea id="share-text" class="mono" readonly rows="10"></textarea>
+        <canvas id="card" width="1080" height="1400" aria-label="Standings card preview"></canvas>
+      </section>
+
+      <section id="players-card" class="card inputs" aria-labelledby="players-h">
+        <h2 id="players-h">Late arrival or early leaver</h2>
+        <p class="hint">Changing the players re-makes only the rounds that have no scores yet. Rounds with a score stay exactly as they are, and anyone who leaves keeps their points in the standings.</p>
+        <label for="late-name">Add a late arrival</label>
+        <div class="row"><input id="late-name" maxlength="24" placeholder="Name"><button type="button" id="late-add" class="secondary">Add</button></div>
+        <ul id="players-now" class="plist" aria-label="Players tonight"></ul>
+        <div class="row"><button type="button" id="remake" class="secondary">Re-make unscored rounds</button></div>
+        <p id="players-msg" class="detail" role="status"></p>
+      </section>
+
+      <section class="card" aria-labelledby="night-tools-h">
+        <h2 id="night-tools-h">This night</h2>
+        <p class="detail" id="save-note">Saved on this device as you go.</p>
+        <div class="actions">
+          <button type="button" id="new-night">Start a new night</button>
+          <button type="button" id="clear-saved">Clear saved night</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="card about" id="about" aria-labelledby="about-h">
+      <h2 id="about-h">How it works</h2>
+      <ul>
+        <li><strong>Americano</strong>: the whole schedule is made up front. Every round, partners and opponents change as much as they can, so nobody plays with the same person until they have to.</li>
+        <li><strong>Mexicano</strong>: round 1 is mixed, then each round is built from the standings. The top four share court 1, the next four court 2, and so on. Inside a court 1st pairs with 4th and 2nd with 3rd, unless that repeats a partnership.</li>
+        <li><strong>Sit-outs</strong> rotate: if there are more players than court places, the people with the fewest sit-outs so far are the ones who rest, so nobody sits twice before everyone has sat once.</li>
+        <li><strong>Scores</strong> are the real points each side won, normally adding up to the points per match. Type one side and the other fills in as the remainder; change it if the match went differently.</li>
+        <li>Works for any social night where partners rotate: padel first, but also tennis, badminton and pickleball.</li>
+      </ul>
+      <h2>Your data</h2>
+      <ul>
+        <li>The current night is saved in this browser's local storage, on this device only, so a refresh does not lose it. That is the only storage used.</li>
+        <li>No account, no cookies, no analytics. Nothing is sent anywhere. A snapshot link holds the standings inside the link itself, so anyone you send it to can read the names and scores in it.</li>
+        <li>The example uses invented first names and made-up scores.</li>
+      </ul>
+      <p class="source">Several free americano tools exist already. This one is a small, honest build: made with AI in an afternoon for Sport Builds, and the source is open if you want to build your own.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Sport Builds &middot; one sports app a week, built with AI</p>
+    <p>Built by Tim @ <a href="https://nozza.co/" target="_blank" rel="noopener">Nozza.co</a> &middot; <a href="https://github.com/norris1976/court-night" rel="noopener">source on GitHub</a></p>
+  </footer>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
