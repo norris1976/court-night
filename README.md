@@ -2,6 +2,8 @@
 
 A free, no-account organiser for a social padel night: americano or mexicano. Add the players, say how many courts you have, and it runs the night: who partners and plays whom on which court, who sits out, a score entry for every match and live standings. Built for a phone held courtside, and fine on a laptop. The same format works for tennis, badminton and pickleball social nights.
 
+**Live: https://court.sportbuilds.co** (also at court-night.pages.dev)
+
 Part of **Sport Builds**, one sports app a week, built with AI. Build notes and the honest failure log: [docs/BUILD_LOG.md](docs/BUILD_LOG.md).
 
 ## What it does
